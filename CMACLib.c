@@ -11,8 +11,7 @@ static void cmac_lshift(uint8_t *in, uint8_t len) {
     uint8_t carry, prev_carry = 0;  
     for(int8_t i = (len-1); i >= 0 ; --i){
         carry = cmac_msb(in[i]);
-        in[i] <<= 1;
-        in[i] += prev_carry;
+        in[i] = (in[i] << 1) | prev_carry; // Shifts value by 1 and adds the carry
         prev_carry = carry;
     }
 }
@@ -60,12 +59,21 @@ cmac_subkeys_t* cmac_generate_subkeys(uint8_t *key, uint8_t key_len = 16){
 }
 
 uint8_t* cmac_auth(cmac_subkeys_t *subkeys, uint8_t *message, uint8_t mac_len,
-                uint8_t key_len = 16, uint8_t msg_len = 16){
+                uint8_t msg_len = 16, uint8_t key_len = 16){
+    
+    // If msg_len = 0, let n = 1; else, let n = msg_len/blocksize (in bytes)
+    uint8_t n = ((msg_len == 0)?1:(msg_len/16));
+
+    // We assume that our messages is composed entirely of complete blocks,
+    // specially the last one
+
+    // TODO: Step 4 from 6.2
+
 
 }
 
 bool cmac_verify(cmac_subkeys_t *subkeys, uint8_t *rec_message, 
                 uint8_t rec_mac, uint8_t mac_len,
-                uint8_t key_len = 16, uint8_t msg_len = 16){
+                uint8_t msg_len = 16, uint8_t key_len = 16){
 
 }

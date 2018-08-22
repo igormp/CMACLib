@@ -63,12 +63,17 @@ uint8_t* cmac_auth(cmac_subkeys_t *subkeys, uint8_t *message, uint8_t mac_len,
     
     // If msg_len = 0, let n = 1; else, let n = msg_len/blocksize (in bytes)
     uint8_t n = ((msg_len == 0)?1:(msg_len/16));
+    uint8_t M[msg_len];
 
-    // We assume that our messages is composed entirely of complete blocks,
-    // specially the last one
+    // Creates a copy of our message in M
+    memcpy(M, message, msg_len);
 
-    // TODO: Step 4 from 6.2
+    // We assume that our message is composed entirely of complete blocks,
+    // specially the last one, so we can XOR the most significant block of 
+    // our message with K1.
+    cmac_xor(M, subkeys.sk1, key_len);
 
+    // TODO: Step 5 from 6.2
 
 }
 

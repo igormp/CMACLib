@@ -45,20 +45,21 @@ struct cmac_subkeys_t cmac_generate_subkeys(uint8_t *key, uint8_t key_len){
     }
 
     if( (subkey.sk1[0] & 128) == 0 ){
-        cmac_lshift(subkey.sk1, 16);
         subkey.sk2 = subkey.sk1;
+        cmac_lshift(subkey.sk2, 16);
     }
     else{
-        cmac_lshift(subkey.sk1, 16);
-        subkey.sk1[key_len-1] ^= Rb;
         subkey.sk2 = subkey.sk1;
+        cmac_lshift(subkey.sk2, 16);
+        subkey.sk2[key_len-1] ^= Rb;
+        
     }
 
     return subkey;
 
 }
 
-void cmac_auth(uint8_t *T, uint8_t *key, struct cmac_subkeys_t *subkeys, uint8_t *message, 
+void cmac_auth(uint8_t *T, uint8_t *key, struct cmac_subkeys_t *subkeys, uint8_t *message,
                 uint8_t mac_len, uint8_t msg_len, uint8_t key_len){
     
     // If msg_len = 0, let n = 1; else, let n = msg_len/blocksize (in bytes)
@@ -70,19 +71,19 @@ void cmac_auth(uint8_t *T, uint8_t *key, struct cmac_subkeys_t *subkeys, uint8_t
     // We assume that our message is composed entirely of complete blocks,
     // specially the last one, so we can XOR the most significant block of 
     // our message with K1.
-    cmac_xor(M, subkeys.sk1, key_len);
+    cmac_xor(M, subkeys->sk1, key_len);
 
     // Makes sure C is at least 1 block bigger than our message to avoid overflows
     uint8_t C[msg_len+BLOCK_SIZE] = {0};
 
     // CBC of a single block
     // TODO: allow multiple blocks
-    cmac_xor(C[i*BLOCK_SIZE], M[i*BLOCK_SIZE], 16);
-    aes128_enc_single(key, C[i*BLOCK_SIZE]);
+    cmac_xor(C, M, 16);
+    aes128_enc_single(key, C);
     
     
     for(uint8_t i = 0; i < mac_len; i++){
-        T[i] = C[i+8];
+        T[i] = C[i];
     }
     
 }

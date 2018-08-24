@@ -58,13 +58,13 @@ cmac_subkeys_t* cmac_generate_subkeys(uint8_t *key, uint8_t key_len = 16){
 
 }
 
-uint8_t* cmac_auth(uint8_t *key, cmac_subkeys_t *subkeys, uint8_t *message, uint8_t mac_len,
-                uint8_t msg_len = 16, uint8_t key_len = 16){
+uint8_t* cmac_auth(uint8_t *key, cmac_subkeys_t *subkeys, uint8_t *message, 
+                uint8_t mac_len = 8, uint8_t msg_len = 16, uint8_t key_len = 16){
     
     // If msg_len = 0, let n = 1; else, let n = msg_len/blocksize (in bytes)
     uint8_t n = ((msg_len == 0)?1:(msg_len/16));
     uint8_t M[msg_len];
-    uint8_t T[8]; // 64bit MAC value that will be returned
+    uint8_t T[mac_len]; // 64bit MAC value that will be returned
 
     memcpy(M, message, msg_len); // Creates a copy of our message in M
 
@@ -82,7 +82,7 @@ uint8_t* cmac_auth(uint8_t *key, cmac_subkeys_t *subkeys, uint8_t *message, uint
     aes128_enc_single(key, C[i*BLOCK_SIZE]);
     
     
-    for(uint8_t i = 0; i < 8; i++){
+    for(uint8_t i = 0; i < mac_len; i++){
         T[i] = C[i+8];
     }
 

@@ -58,27 +58,40 @@ cmac_subkeys_t* cmac_generate_subkeys(uint8_t *key, uint8_t key_len = 16){
 
 }
 
-uint8_t* cmac_auth(cmac_subkeys_t *subkeys, uint8_t *message, uint8_t mac_len,
+uint8_t* cmac_auth(uint8_t *key, cmac_subkeys_t *subkeys, uint8_t *message, uint8_t mac_len,
                 uint8_t msg_len = 16, uint8_t key_len = 16){
     
     // If msg_len = 0, let n = 1; else, let n = msg_len/blocksize (in bytes)
     uint8_t n = ((msg_len == 0)?1:(msg_len/16));
     uint8_t M[msg_len];
+    uint8_t T[8]; // 64bit MAC value that will be returned
 
-    // Creates a copy of our message in M
-    memcpy(M, message, msg_len);
+    memcpy(M, message, msg_len); // Creates a copy of our message in M
 
     // We assume that our message is composed entirely of complete blocks,
     // specially the last one, so we can XOR the most significant block of 
     // our message with K1.
     cmac_xor(M, subkeys.sk1, key_len);
 
-    // TODO: Step 5 from 6.2
+    // Makes sure C is at least 1 block bigger than our message to avoid overflows
+    uint8_t C[msg_len+BLOCK_SIZE] = {0};
 
+    // CBC of a single block
+    // TODO: allow multiple blocks
+    cmac_xor(C[i*BLOCK_SIZE], M[i*BLOCK_SIZE], 16);
+    aes128_enc_single(key, C[i*BLOCK_SIZE]);
+    
+    
+    for(uint8_t i = 0; i < 8; i++){
+        T[i] = C[i+8];
+    }
+
+    return T;
+    
 }
 
-bool cmac_verify(cmac_subkeys_t *subkeys, uint8_t *rec_message, 
-                uint8_t rec_mac, uint8_t mac_len,
+bool cmac_verify(uint8_t *key, cmac_subkeys_t *subkeys, uint8_t *rec_message,
+                uint8_t *rec_mac, uint8_t mac_len = 8,
                 uint8_t msg_len = 16, uint8_t key_len = 16){
 
 }

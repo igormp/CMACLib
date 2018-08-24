@@ -23,7 +23,7 @@ static void cmac_xor(uint8_t *x, uint8_t *y, uint8_t len){
     }
 }
 
-cmac_subkeys_t* cmac_generate_subkeys(uint8_t *key, uint8_t key_len = 16){
+cmac_subkeys_t* cmac_generate_subkeys(uint8_t *key, uint8_t key_len){
     cmac_subkeys_t subkey;
 
     // Rb value according to section 5.3 of the NIST doc
@@ -59,7 +59,7 @@ cmac_subkeys_t* cmac_generate_subkeys(uint8_t *key, uint8_t key_len = 16){
 }
 
 uint8_t* cmac_auth(uint8_t *key, cmac_subkeys_t *subkeys, uint8_t *message, 
-                uint8_t mac_len = 8, uint8_t msg_len = 16, uint8_t key_len = 16){
+                uint8_t mac_len, uint8_t msg_len, uint8_t key_len){
     
     // If msg_len = 0, let n = 1; else, let n = msg_len/blocksize (in bytes)
     uint8_t n = ((msg_len == 0)?1:(msg_len/16));
@@ -91,7 +91,7 @@ uint8_t* cmac_auth(uint8_t *key, cmac_subkeys_t *subkeys, uint8_t *message,
 }
 
 bool cmac_verify(uint8_t *key, cmac_subkeys_t *subkeys, uint8_t *rec_message,
-                uint8_t *rec_mac, uint8_t mac_len = 8,
-                uint8_t msg_len = 16, uint8_t key_len = 16){
+                uint8_t *rec_mac, uint8_t mac_len,
+                uint8_t msg_len, uint8_t key_len){
 
 }

@@ -5,14 +5,13 @@
 #include <string.h>
 #include "AESLib.h"
 
-
-struct cmac_subkeys_t{
-    uint8_t *sk1;
-    uint8_t *sk2;
-};
-
 // Cipher block size, in bytes
 const uint8_t BLOCK_SIZE = 16;
+
+struct cmac_subkeys_t{
+    uint8_t sk1[BLOCK_SIZE];
+    uint8_t sk2[BLOCK_SIZE];
+};
 
 // Generates subkeys. Takes in your cipher key and 
 // optionally the key length in bytes, which defaults to 16 bytes.

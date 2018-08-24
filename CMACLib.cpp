@@ -23,6 +23,13 @@ static void cmac_xor(uint8_t *x, uint8_t *y, uint8_t len){
     }
 }
 
+// Xors an array with a constant value
+static void cmac_xor_const(uint8_t *x, const uint8_t value, uint8_t len){
+    for(int8_t i = 0; i < len; i++){
+        x[i] ^= value;
+    }
+}
+
 struct cmac_subkeys_t cmac_generate_subkeys(uint8_t *key, uint8_t key_len){
     struct cmac_subkeys_t subkey;
 
@@ -32,27 +39,23 @@ struct cmac_subkeys_t cmac_generate_subkeys(uint8_t *key, uint8_t key_len){
     // Does L = CIPHk(0b) 
     uint8_t L[key_len] = {0};
     aes128_enc_multiple(key, L, key_len);
-
-
-    if( (L[0] & 128) == 0 ){
-        cmac_lshift(L, 16);
-        subkey.sk1 = L;
-    }
-    else{
-        cmac_lshift(L, 16);
-        L[key_len-1] ^= Rb;
-        subkey.sk1 = L;
-    }
+    memcpy(subkey.sk1, L, key_len);
 
     if( (subkey.sk1[0] & 128) == 0 ){
-        subkey.sk2 = subkey.sk1;
+        cmac_lshift(subkey.sk1, 16);
+    }
+    else{
+        cmac_lshift(subkey.sk1, 16);
+        cmac_xor_const(subkey.sk1, Rb, 16);
+    }
+
+    memcpy(subkey.sk2, subkey.sk1, key_len);
+    if( (subkey.sk2[0] & 128) == 0 ){
         cmac_lshift(subkey.sk2, 16);
     }
     else{
-        subkey.sk2 = subkey.sk1;
         cmac_lshift(subkey.sk2, 16);
-        subkey.sk2[key_len-1] ^= Rb;
-        
+        cmac_xor_const(subkey.sk2, Rb, 16);        
     }
 
     return subkey;

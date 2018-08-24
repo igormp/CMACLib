@@ -23,8 +23,8 @@ static void cmac_xor(uint8_t *x, uint8_t *y, uint8_t len){
     }
 }
 
-cmac_subkeys_t* cmac_generate_subkeys(uint8_t *key, uint8_t key_len){
-    cmac_subkeys_t subkey;
+struct cmac_subkeys_t cmac_generate_subkeys(uint8_t *key, uint8_t key_len){
+    struct cmac_subkeys_t subkey;
 
     // Rb value according to section 5.3 of the NIST doc
     const uint8_t Rb = 135;
@@ -40,7 +40,7 @@ cmac_subkeys_t* cmac_generate_subkeys(uint8_t *key, uint8_t key_len){
     }
     else{
         cmac_lshift(L, 16);
-        L[len-1] ^= Rb;
+        L[key_len-1] ^= Rb;
         subkey.sk1 = L;
     }
 
@@ -50,7 +50,7 @@ cmac_subkeys_t* cmac_generate_subkeys(uint8_t *key, uint8_t key_len){
     }
     else{
         cmac_lshift(subkey.sk1, 16);
-        subkey.sk1[len-1] ^= Rb;
+        subkey.sk1[key_len-1] ^= Rb;
         subkey.sk2 = subkey.sk1;
     }
 
@@ -58,13 +58,12 @@ cmac_subkeys_t* cmac_generate_subkeys(uint8_t *key, uint8_t key_len){
 
 }
 
-uint8_t* cmac_auth(uint8_t *key, cmac_subkeys_t *subkeys, uint8_t *message, 
+void cmac_auth(uint8_t *T, uint8_t *key, struct cmac_subkeys_t *subkeys, uint8_t *message, 
                 uint8_t mac_len, uint8_t msg_len, uint8_t key_len){
     
     // If msg_len = 0, let n = 1; else, let n = msg_len/blocksize (in bytes)
     uint8_t n = ((msg_len == 0)?1:(msg_len/16));
     uint8_t M[msg_len];
-    uint8_t T[mac_len]; // 64bit MAC value that will be returned
 
     memcpy(M, message, msg_len); // Creates a copy of our message in M
 
@@ -85,12 +84,10 @@ uint8_t* cmac_auth(uint8_t *key, cmac_subkeys_t *subkeys, uint8_t *message,
     for(uint8_t i = 0; i < mac_len; i++){
         T[i] = C[i+8];
     }
-
-    return T;
     
 }
 
-bool cmac_verify(uint8_t *key, cmac_subkeys_t *subkeys, uint8_t *rec_message,
+bool cmac_verify(uint8_t *key, struct cmac_subkeys_t *subkeys, uint8_t *rec_message,
                 uint8_t *rec_mac, uint8_t mac_len,
                 uint8_t msg_len, uint8_t key_len){
 

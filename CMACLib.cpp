@@ -94,5 +94,17 @@ void cmac_auth(uint8_t *T, uint8_t *key, struct cmac_subkeys_t *subkeys, uint8_t
 bool cmac_verify(uint8_t *key, struct cmac_subkeys_t *subkeys, uint8_t *rec_message,
                 uint8_t *rec_mac, uint8_t mac_len,
                 uint8_t msg_len, uint8_t key_len){
+                    
+    uint8_t Ttemp[mac_len];
+
+    cmac_auth(Ttemp, key, subkeys, rec_message, mac_len);
+
+    for(uint8_t i = 0; i < mac_len; i++){
+        if(Ttemp[i] != rec_mac[i]){
+            return false;
+        }
+    }
+
+    return true;
 
 }

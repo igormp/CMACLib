@@ -62,20 +62,22 @@ struct cmac_subkeys_t cmac_generate_subkeys(uint8_t *key, uint8_t key_len){
 
 }
 
-static void cmac_pad(uint8_t *in, uint8_t len){
-    // TODO
-}
-
 void cmac_auth(uint8_t *T, uint8_t *key, struct cmac_subkeys_t *subkeys, uint8_t *message,
                 uint8_t mac_len, uint8_t msg_len, uint8_t key_len){
     
     // If msg_len = 0, let n = 1; else, let n = ceil(msg_len/blocksize) (in bytes)
     uint8_t n = ((msg_len == 0)?1:(1 + ((msg_len - 1) / BLOCK_SIZE)));
-    //uint8_t remainder = (BLOCK_SIZE-(msg_len%BLOCK_SIZE));
-    uint8_t M[msg_len];
+    uint8_t remainder = ((msg_len%BLOCK_SIZE == 0)?0:(BLOCK_SIZE-(msg_len%BLOCK_SIZE)));
+    uint8_t M[msg_len+remainder] = {0};
 
     memcpy(M, message, msg_len); // Creates a copy of our message in M
 
+    if(remainder != 0){
+        M[msg_len] = 128;
+    }
+    if(msg_len == 0){
+        M[0] = 128;
+    }
     // We assume that our message is composed entirely of complete blocks,
     // specially the last one, so we can XOR the most significant block of 
     // our message with K1.

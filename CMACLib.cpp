@@ -42,31 +42,36 @@ struct cmac_subkeys_t cmac_generate_subkeys(uint8_t *key, uint8_t key_len){
     memcpy(subkey.sk1, L, key_len);
 
     if( (subkey.sk1[0] & 128) == 0 ){
-        cmac_lshift(subkey.sk1, 16);
+        cmac_lshift(subkey.sk1, BLOCK_SIZE);
     }
     else{
-        cmac_lshift(subkey.sk1, 16);
-        cmac_xor_const(subkey.sk1, Rb, 16);
+        cmac_lshift(subkey.sk1, BLOCK_SIZE);
+        cmac_xor_const(subkey.sk1, Rb, BLOCK_SIZE);
     }
 
     memcpy(subkey.sk2, subkey.sk1, key_len);
     if( (subkey.sk2[0] & 128) == 0 ){
-        cmac_lshift(subkey.sk2, 16);
+        cmac_lshift(subkey.sk2, BLOCK_SIZE);
     }
     else{
-        cmac_lshift(subkey.sk2, 16);
-        cmac_xor_const(subkey.sk2, Rb, 16);        
+        cmac_lshift(subkey.sk2, BLOCK_SIZE);
+        cmac_xor_const(subkey.sk2, Rb, BLOCK_SIZE);        
     }
 
     return subkey;
 
 }
 
+static void cmac_pad(uint8_t *in, uint8_t len){
+    // TODO
+}
+
 void cmac_auth(uint8_t *T, uint8_t *key, struct cmac_subkeys_t *subkeys, uint8_t *message,
                 uint8_t mac_len, uint8_t msg_len, uint8_t key_len){
     
-    // If msg_len = 0, let n = 1; else, let n = msg_len/blocksize (in bytes)
-    uint8_t n = ((msg_len == 0)?1:(msg_len/16));
+    // If msg_len = 0, let n = 1; else, let n = ceil(msg_len/blocksize) (in bytes)
+    uint8_t n = ((msg_len == 0)?1:(1 + ((msg_len - 1) / BLOCK_SIZE)));
+    //uint8_t remainder = (BLOCK_SIZE-(msg_len%BLOCK_SIZE));
     uint8_t M[msg_len];
 
     memcpy(M, message, msg_len); // Creates a copy of our message in M
@@ -74,16 +79,15 @@ void cmac_auth(uint8_t *T, uint8_t *key, struct cmac_subkeys_t *subkeys, uint8_t
     // We assume that our message is composed entirely of complete blocks,
     // specially the last one, so we can XOR the most significant block of 
     // our message with K1.
-    cmac_xor(M, subkeys->sk1, key_len);
+    cmac_xor((M+msg_len-BLOCK_SIZE), subkeys->sk1, key_len);
 
     // Makes sure C is at least 1 block bigger than our message to avoid overflows
     uint8_t C[msg_len+BLOCK_SIZE] = {0};
-
-    // CBC of a single block
-    // TODO: allow multiple blocks
-    cmac_xor(C, M, 16);
-    aes128_enc_single(key, C);
     
+    for(uint8_t i = 0; i < n; i++){
+        cmac_xor(C, (M+(i*BLOCK_SIZE)), BLOCK_SIZE);
+        aes128_enc_single(key, C);
+    }
     
     for(uint8_t i = 0; i < mac_len; i++){
         T[i] = C[i];

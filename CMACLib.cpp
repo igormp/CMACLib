@@ -39,23 +39,17 @@ struct cmac_subkeys_t cmac_generate_subkeys(uint8_t *key, uint8_t key_len){
     // Does L = CIPHk(0b) 
     uint8_t L[key_len] = {0};
     aes128_enc_multiple(key, L, key_len);
-    memcpy(subkey.sk1, L, key_len);
 
-    if( (subkey.sk1[0] & 128) == 0 ){
-        cmac_lshift(subkey.sk1, BLOCK_SIZE);
-    }
-    else{
-        cmac_lshift(subkey.sk1, BLOCK_SIZE);
+    memcpy(subkey.sk1, L, key_len);
+    cmac_lshift(subkey.sk1, BLOCK_SIZE);
+    if( (subkey.sk1[0] & 128) != 0 ){
         cmac_xor_const(subkey.sk1, Rb, BLOCK_SIZE);
     }
 
     memcpy(subkey.sk2, subkey.sk1, key_len);
-    if( (subkey.sk2[0] & 128) == 0 ){
-        cmac_lshift(subkey.sk2, BLOCK_SIZE);
-    }
-    else{
-        cmac_lshift(subkey.sk2, BLOCK_SIZE);
-        cmac_xor_const(subkey.sk2, Rb, BLOCK_SIZE);        
+    cmac_lshift(subkey.sk2, BLOCK_SIZE);
+    if( (subkey.sk2[0] & 128) != 0 ){
+        cmac_xor_const(subkey.sk2, Rb, BLOCK_SIZE);
     }
 
     return subkey;

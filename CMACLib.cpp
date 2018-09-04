@@ -46,7 +46,7 @@ struct cmac_subkeys_t cmac_generate_subkeys(uint8_t *key, uint8_t key_len){
     }
     else{
         cmac_lshift(subkey.sk1, BLOCK_SIZE);
-        cmac_xor_const(subkey.sk1, Rb, BLOCK_SIZE);
+        subkey.sk1[key_len-1] ^= Rb;
     }
 
     memcpy(subkey.sk2, subkey.sk1, key_len);
@@ -55,7 +55,7 @@ struct cmac_subkeys_t cmac_generate_subkeys(uint8_t *key, uint8_t key_len){
     }
     else{
         cmac_lshift(subkey.sk2, BLOCK_SIZE);
-        cmac_xor_const(subkey.sk2, Rb, BLOCK_SIZE);        
+        subkey.sk2[key_len-1] ^= Rb;
     }
 
     return subkey;
@@ -68,9 +68,12 @@ void cmac_auth(uint8_t *T, uint8_t *key, struct cmac_subkeys_t *subkeys, uint8_t
     // If msg_len = 0, let n = 1; else, let n = ceil(msg_len/blocksize) (in bytes)
     uint8_t n = ((msg_len == 0)?1:(1 + ((msg_len - 1) / BLOCK_SIZE)));
     uint8_t remainder = ((msg_len%BLOCK_SIZE == 0)?0:(BLOCK_SIZE-(msg_len%BLOCK_SIZE)));
-    uint8_t M[msg_len+remainder] = {0};
+    
+    uint8_t M[(n*BLOCK_SIZE)+remainder] = {0};
 
-    memcpy(M, message, msg_len); // Creates a copy of our message in M
+    if(msg_len != 0){
+        memcpy(M, message, msg_len); // Creates a copy of our message in M
+    }
 
     if(remainder != 0){
         M[msg_len] = 128;
@@ -78,12 +81,14 @@ void cmac_auth(uint8_t *T, uint8_t *key, struct cmac_subkeys_t *subkeys, uint8_t
     if(msg_len == 0){
         M[0] = 128;
     }
-    // We assume that our message is composed entirely of complete blocks,
-    // specially the last one, so we can XOR the most significant block of 
-    // our message with K1.
-    cmac_xor((M+msg_len-BLOCK_SIZE), subkeys->sk1, key_len);
 
-    // Makes sure C is at least 1 block bigger than our message to avoid overflows
+    if(remainder == 0 && msg_len != 0){
+       cmac_xor((M+(n*BLOCK_SIZE)-BLOCK_SIZE), subkeys->sk1, key_len);
+    } else {
+        cmac_xor((M+(n*BLOCK_SIZE)-BLOCK_SIZE), subkeys->sk2, key_len);
+    }
+
+    // Makes sure C is at least 1 block bigger than our message to avoid out of bounds
     uint8_t C[msg_len+BLOCK_SIZE] = {0};
     
     for(uint8_t i = 0; i < n; i++){

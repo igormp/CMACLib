@@ -69,7 +69,7 @@ void cmac_auth(uint8_t *T, uint8_t *key, struct cmac_subkeys_t *subkeys, uint8_t
     uint8_t n = ((msg_len == 0)?1:(1 + ((msg_len - 1) / BLOCK_SIZE)));
     uint8_t remainder = ((msg_len%BLOCK_SIZE == 0)?0:(BLOCK_SIZE-(msg_len%BLOCK_SIZE)));
     
-    uint8_t M[(n*BLOCK_SIZE)+remainder] = {0};
+    uint8_t M[(n*BLOCK_SIZE)] = {0};
 
     if(msg_len != 0){
         memcpy(M, message, msg_len); // Creates a copy of our message in M
@@ -83,13 +83,12 @@ void cmac_auth(uint8_t *T, uint8_t *key, struct cmac_subkeys_t *subkeys, uint8_t
     }
 
     if(remainder == 0 && msg_len != 0){
-       cmac_xor((M+(n*BLOCK_SIZE)-BLOCK_SIZE), subkeys->sk1, key_len);
+        cmac_xor((M+((n-1)*BLOCK_SIZE)), subkeys->sk1, key_len);
     } else {
-        cmac_xor((M+(n*BLOCK_SIZE)-BLOCK_SIZE), subkeys->sk2, key_len);
+        cmac_xor((M+((n-1)*BLOCK_SIZE)), subkeys->sk2, key_len);
     }
 
-    // Makes sure C is at least 1 block bigger than our message to avoid out of bounds
-    uint8_t C[msg_len+BLOCK_SIZE] = {0};
+    uint8_t C[BLOCK_SIZE] = {0};
     
     for(uint8_t i = 0; i < n; i++){
         cmac_xor(C, (M+(i*BLOCK_SIZE)), BLOCK_SIZE);

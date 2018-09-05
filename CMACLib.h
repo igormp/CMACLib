@@ -32,5 +32,4 @@ bool cmac_verify(uint8_t *key, struct cmac_subkeys_t *subkeys, uint8_t *rec_mess
                 uint8_t *rec_mac, uint8_t mac_len = 8,
                 uint8_t msg_len = 16, uint8_t key_len = 16);
 
-
 #endif

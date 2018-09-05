@@ -23,13 +23,6 @@ static void cmac_xor(uint8_t *x, uint8_t *y, uint8_t len){
     }
 }
 
-// Xors an array with a constant value
-static void cmac_xor_const(uint8_t *x, const uint8_t value, uint8_t len){
-    for(int8_t i = 0; i < len; i++){
-        x[i] ^= value;
-    }
-}
-
 struct cmac_subkeys_t cmac_generate_subkeys(uint8_t *key, uint8_t key_len){
     struct cmac_subkeys_t subkey;
 

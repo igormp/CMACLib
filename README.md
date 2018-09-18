@@ -12,7 +12,20 @@ Currently it only works on AVR microcontrollers due to the hard requirement on A
 
 Clone this repository into your Arduino libraries folder, and include this library into your code.
 
-## ☑ Roadmap
+Change the `BLOCK_SIZE` variable to indicate the lenght of your block size in bytes. Its value is 16 by default (since we're using a 128 bits chiper).
+
+Create an array containg your AES key (for example, for a 128 bit key, an array containing 16 unssigned bytes would do).
+
+Derive subkeys from your actual key using the provided `cmac_generate_subkeys` function. E.g.: 
+
+```
+struct cmac_subkeys_t subkeys = cmac_generate_subkeys(key);
+```
+
+
+You can see the `CMACLib.h` file for further descriptions on the available functions and parameters.
+
+## Roadmap
 
 - [X] Pass on NIST's 128bit examples
 - [ ] Pass on NIST's 192bit examples

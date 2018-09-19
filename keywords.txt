@@ -1,0 +1,4 @@
+cmac_subkeys_t	KEYWORD1
+cmac_generate_subkeys	KEYWORD2
+cmac_auth	KEYWORD2
+cmac_verify	KEYWORD2

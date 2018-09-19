@@ -37,6 +37,6 @@ You can see the `CMACLib.h` file for further descriptions on the available funct
 
 ## Resources
 
-[NIST SP 800-38B](http://csrc.nist.gov/publications/nistpubs/800-38B/SP_800-38B.pdf) - The CMAC Mode for Authentication
+[NIST SP 800-38B](https://csrc.nist.gov/publications/detail/sp/800-38b/final) - The CMAC Mode for Authentication
 
 [NIST test vectors](https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/AES_CMAC.pdf)
